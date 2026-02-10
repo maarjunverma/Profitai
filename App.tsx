@@ -12,7 +12,6 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check local storage for simulated session
     const storedUser = localStorage.getItem('arbitrage_scout_user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
@@ -38,47 +37,42 @@ const App: React.FC = () => {
 
   return (
     <HashRouter>
-      <div className="min-h-screen bg-slate-50 flex flex-col">
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-                  AS
-                </div>
-                <span className="text-xl font-bold text-slate-900 hidden sm:inline-block">ArbitrageScout</span>
+      <div className="app-container">
+        <header className="site-header">
+          <div className="max-width-wrapper header-inner">
+            <div className="nav-links">
+              <Link to="/" className="brand">
+                <div className="brand-icon">AS</div>
+                <span>ArbitrageScout</span>
               </Link>
-              <nav className="hidden md:flex items-center gap-1">
+              <nav className="nav-links" style={{marginLeft: '2rem'}}>
                 <NavLink to="/" icon={<Icons.LayoutDashboard />}>Dashboard</NavLink>
                 <NavLink to="/watchlist" icon={<Icons.Bookmark />}>Watchlist</NavLink>
               </nav>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex flex-col items-end mr-4">
-                <span className="text-sm font-medium text-slate-900">{user?.username}</span>
-                <span className="text-xs text-emerald-600 font-bold uppercase tracking-wider">{user?.tier} Plan</span>
+            <div className="nav-links">
+              <div style={{textAlign: 'right', marginRight: '1rem'}} className="hidden sm:inline-block">
+                <div style={{fontSize: '0.875rem', fontWeight: 500}}>{user?.username}</div>
+                <div style={{fontSize: '0.75rem', color: 'var(--emerald-600)', fontWeight: 800, textTransform: 'uppercase'}}>{user?.tier} Plan</div>
               </div>
-              <button 
-                onClick={handleLogout}
-                className="text-sm text-slate-500 hover:text-red-600 font-medium transition-colors"
-              >
+              <button onClick={handleLogout} style={{fontSize: '0.875rem', color: 'var(--slate-500)', fontWeight: 500}}>
                 Logout
               </button>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <main className="main-content max-width-wrapper">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/watchlist" element={<Watchlist />} />
           </Routes>
         </main>
 
-        <footer className="bg-white border-t border-slate-200 py-8">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-            <p className="text-sm text-slate-500">© 2024 ArbitrageScout. Real-time Amazon Intelligence for Pros.</p>
+        <footer className="footer">
+          <div className="max-width-wrapper">
+            <p>© 2024 ArbitrageScout. Real-time Amazon Intelligence for Pros.</p>
           </div>
         </footer>
       </div>
@@ -91,14 +85,7 @@ const NavLink: React.FC<{ to: string, icon: React.ReactNode, children: React.Rea
   const isActive = location.pathname === to;
 
   return (
-    <Link 
-      to={to} 
-      className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
-        isActive 
-          ? 'bg-emerald-50 text-emerald-700 font-semibold' 
-          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-      }`}
-    >
+    <Link to={to} className={`nav-link ${isActive ? 'nav-link-active' : ''}`}>
       {icon}
       <span>{children}</span>
     </Link>
