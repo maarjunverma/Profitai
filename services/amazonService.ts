@@ -1,9 +1,7 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+// import { GoogleGenAI, Type } from "@google/genai";
 import { Product, CompetitorPrice } from "../types";
 import { AMAZON_CATEGORIES } from "../constants";
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // Production RapidAPI Configuration
 const RAPIDAPI_KEY = 'c3d9da1be9msh3415706f37fe7c7p12aa2ajsnbefa208afa10';
@@ -40,7 +38,6 @@ export async function searchProducts(
     const categoryName = AMAZON_CATEGORIES.find(c => c.id === category)?.name || '';
     let searchQuery = query.trim();
     
-    // Construct refined query based on keyword and category
     if (!searchQuery && category !== 'aps') {
       searchQuery = `best sellers in ${categoryName}`;
     } else if (searchQuery && category !== 'aps') {
@@ -55,7 +52,6 @@ export async function searchProducts(
       finalQuery += ` ${priceContext}`;
     }
 
-    // Build URL with category filter if supported by API, or fallback to keyword-based
     const categoryParam = category !== 'aps' ? `&category_id=${category}` : '';
     const url = `https://${RAPIDAPI_HOST}/search?query=${encodeURIComponent(finalQuery)}${categoryParam}&page=${page}&country=${country}&sort_by=RELEVANCE&product_condition=ALL`;
     
@@ -84,7 +80,6 @@ export async function searchProducts(
         productUrl: p.product_url || `https://www.amazon.com/dp/${p.asin}`
       }));
 
-      // Secondary client-side price filter
       if (minPrice !== undefined) mapped = mapped.filter(p => p.price >= minPrice);
       if (maxPrice !== undefined) mapped = mapped.filter(p => p.price <= maxPrice);
 
@@ -93,76 +88,35 @@ export async function searchProducts(
       throw new Error(`RapidAPI Error: ${response.status}`);
     }
   } catch (error) {
-    console.warn("RapidAPI fallback triggered.");
-    const simResponse = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Simulate 6 high-demand Amazon product search results for: query: "${query}", category: "${category}", country: "${country}". Return valid JSON array. Include realistic salesVolume like "1K+ bought in past month".`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              asin: { type: Type.STRING },
-              title: { type: Type.STRING },
-              imageUrl: { type: Type.STRING },
-              price: { type: Type.NUMBER },
-              currency: { type: Type.STRING },
-              bsr: { type: Type.NUMBER },
-              reviewCount: { type: Type.NUMBER },
-              rating: { type: Type.NUMBER },
-              salesVolume: { type: Type.STRING },
-              productUrl: { type: Type.STRING }
-            },
-            required: ["asin", "title", "imageUrl", "price", "currency", "bsr", "reviewCount", "rating", "salesVolume", "productUrl"]
-          }
-        }
-      }
-    });
-
-    return JSON.parse(simResponse.text || '[]');
+    console.warn("RapidAPI failed and AI fallback is disabled for production stability.");
+    /* 
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const simResponse = await ai.models.generateContent({ ... });
+    */
+    return [];
   }
 }
 
 export async function getCompetitorPrices(product: Product): Promise<CompetitorPrice[]> {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Search for prices of "${product.title}" at retailers like Walmart, eBay, Target. Return JSON array of {store, price, url, currency}.`,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              store: { type: Type.STRING },
-              price: { type: Type.NUMBER },
-              url: { type: Type.STRING },
-              currency: { type: Type.STRING }
-            },
-            required: ["store", "price", "url", "currency"]
-          }
-        }
-      },
-    });
-
+    console.log("Competitor price check (AI) is currently disabled in production.");
+    /*
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const response = await ai.models.generateContent({ ... });
     return JSON.parse(response.text || '[]');
+    */
+    return [];
   } catch (error) {
-    console.error("Competitor price check failed:", error);
     return [];
   }
 }
 
 export async function getScoutInsights(product: Product): Promise<string> {
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Expert Arbitrage Analysis for "${product.title}" at ${product.price} ${product.currency}. Vol: ${product.salesVolume}. BSR: ${product.bsr}. Give a 1-sentence profit verdict.`,
-    });
-    return response.text || "Analysis unavailable.";
+    // const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // const response = await ai.models.generateContent({ ... });
+    // return response.text || "Analysis unavailable.";
+    return "AI Insights currently disabled. Evaluate ROI based on current Amazon price and your acquisition cost.";
   } catch (err) {
     return "Intelligence service offline.";
   }
