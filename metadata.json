@@ -1,0 +1,7 @@
+{
+  "name": "ProfitAi",
+  "description": "A high-performance Micro-SaaS for Amazon FBA sellers to identify pricing discrepancies, calculate ROI, and track profitable arbitrage opportunities.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
