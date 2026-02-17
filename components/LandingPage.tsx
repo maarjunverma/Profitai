@@ -10,21 +10,30 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    
     if (!email || !email.includes('@')) {
       setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!phoneNumber || phoneNumber.length < 7) {
+      setError("Please enter a valid mobile number.");
       return;
     }
     
     setLoading(true);
     try {
-      await strapiService.captureLead(email);
-      const { user } = await strapiService.login(email);
+      // Capture lead info
+      await strapiService.captureLead(email, phoneNumber);
+      // Login/Register session
+      const { user } = await strapiService.login(email, phoneNumber);
       onLogin(user);
     } catch (err: any) {
       setError(err.message || "Scout server is unreachable. Check your connection.");
@@ -41,11 +50,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
         <div className="max-width-wrapper">
           <div className="hero-badge">
-            <Icons.TrendingUp />Get Real-time Products trends and Demands Intelligence
+            <Icons.TrendingUp /> Get Real-time Product Trends & Demand
           </div>
           
           <h1 className="hero-title">
-            Find Profitable Products <br /> on Popular Marketplace <span style={{color: 'var(--emerald-600)'}}>Instantly.</span>
+            Find Profitable Products <br /> on Popular Marketplaces <span style={{color: 'var(--emerald-600)'}}>Instantly.</span>
           </h1>
           
           <p className="hero-subtitle">
@@ -54,20 +63,45 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           </p>
 
           <form onSubmit={handleStart} className="access-form">
-            <input 
-              type="email" 
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email to start scouting..."
-              className="access-input"
-              style={error ? {borderColor: 'var(--red-600)'} : {}}
-            />
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col text-left gap-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Account Email</label>
+                <input 
+                  type="email" 
+                  required
+                  inputMode="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="access-input"
+                  style={error && !email.includes('@') ? {borderColor: 'var(--red-600)'} : {}}
+                />
+              </div>
+              
+              <div className="flex flex-col text-left gap-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Mobile Number</label>
+                <input 
+                  type="tel" 
+                  required
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+1 (555) 000-0000"
+                  className="access-input"
+                  style={error && (!phoneNumber || phoneNumber.length < 7) ? {borderColor: 'var(--red-600)'} : {}}
+                />
+              </div>
+            </div>
+
             {error && <p style={{color: 'var(--red-600)', fontSize: '0.75rem', fontWeight: 700, margin: '4px 0'}}>{error}</p>}
+            
             <button 
               type="submit"
               disabled={loading}
               className="btn-access"
+              style={{marginTop: '0.5rem'}}
             >
               {loading ? (
                 <>
@@ -86,22 +120,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           </form>
 
           {/* Feature Preview Skeletons */}
-          <div style={{marginTop: '5rem', background: 'white', padding: '1.5rem', borderRadius: '32px', border: '1px solid var(--slate-200)', boxShadow: 'var(--shadow-lg)'}}>
-            <div style={{background: 'var(--slate-50)', borderRadius: '20px', padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem'}}>
-               <div style={{background: 'white', borderRadius: '16px', border: '1px solid var(--slate-200)', padding: '1rem', display: 'flex', gap: '1rem'}}>
-                  <div style={{width: '64px', height: '64px', background: 'var(--slate-200)', borderRadius: '8px', flexShrink: 0}} />
-                  <div style={{flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem'}}>
-                    <div style={{height: '10px', background: 'var(--slate-200)', borderRadius: '4px', width: '80%'}} />
-                    <div style={{height: '10px', background: 'var(--slate-100)', borderRadius: '4px', width: '50%'}} />
-                  </div>
-               </div>
+          <div style={{marginTop: '5rem', background: 'white', padding: '1.5rem', borderRadius: '32px', border: '1px solid var(--slate-200)', boxShadow: 'var(--shadow-lg)'}} className="mx-auto max-w-4xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               {[1,2].map(i => (
+                 <div key={i} style={{background: 'var(--slate-50)', borderRadius: '16px', padding: '1rem', display: 'flex', gap: '1rem', opacity: 0.6}}>
+                    <div style={{width: '64px', height: '64px', background: 'var(--slate-200)', borderRadius: '8px', flexShrink: 0}} />
+                    <div style={{flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', justifyContent: 'center'}}>
+                      <div style={{height: '10px', background: 'var(--slate-200)', borderRadius: '4px', width: '80%'}} />
+                      <div style={{height: '10px', background: 'var(--slate-100)', borderRadius: '4px', width: '50%'}} />
+                    </div>
+                 </div>
+               ))}
             </div>
           </div>
         </div>
       </section>
 
-      <footer style={{padding: '4rem 0', textAlign: 'center', borderTop: '1px solid var(--slate-100)', color: 'var(--slate-500)', fontSize: '0.875rem'}}>
-        <p>&copy; 2024 ArbitrageScout. Powering high-ROI decisions.</p>
+      <footer style={{padding: '4rem 0', textAlign: 'center', borderTop: '1px solid var(--slate-100)', marginTop: '4rem'}}>
+        <p style={{fontSize: '0.8rem', color: 'var(--slate-400)'}}>© 2024 ArbitrageScout. Powering the next generation of FBA sellers.</p>
       </footer>
     </div>
   );

@@ -5,7 +5,7 @@ const MOCK_DELAY = 600;
 const LEAD_ENDPOINT = 'https://api.madsag.in/api/amazon-emails';
 
 export const strapiService = {
-  async captureLead(email: string): Promise<boolean> {
+  async captureLead(email: string, phoneNumber?: string): Promise<boolean> {
     try {
       const response = await fetch(LEAD_ENDPOINT, {
         method: 'POST',
@@ -16,6 +16,7 @@ export const strapiService = {
         body: JSON.stringify({
           data: {
             email: email,
+            phone: phoneNumber || 'N/A',
             source: 'ArbitrageScout App',
             timestamp: new Date().toISOString(),
             status: 'active'
@@ -29,19 +30,23 @@ export const strapiService = {
 
       return true;
     } catch (error) {
-      // Don't throw for lead capture as it's secondary to user entry
       console.warn("Lead capture failed:", error);
       return false;
     }
   },
 
-  async login(email: string): Promise<{ user: User; jwt: string }> {
+  async login(email: string, phoneNumber?: string): Promise<{ user: User; jwt: string }> {
     try {
       await new Promise(r => setTimeout(r, MOCK_DELAY));
       
-      const existing = localStorage.getItem(`strapi_user_${email}`);
+      const existingKey = `strapi_user_${email}`;
+      const existing = localStorage.getItem(existingKey);
+      
       if (existing) {
         const user = JSON.parse(existing);
+        // Update phone number if provided
+        if (phoneNumber) user.phoneNumber = phoneNumber;
+        localStorage.setItem(existingKey, JSON.stringify(user));
         return { user, jwt: 'mock-jwt-token-' + user.id };
       }
 
@@ -49,11 +54,12 @@ export const strapiService = {
         id: Math.random().toString(36).substr(2, 9),
         username: email.split('@')[0],
         email: email,
+        phoneNumber: phoneNumber,
         tier: SubscriptionTier.FREE,
         searchCredits: 5 
       };
       
-      localStorage.setItem(`strapi_user_${email}`, JSON.stringify(newUser));
+      localStorage.setItem(existingKey, JSON.stringify(newUser));
       return { user: newUser, jwt: 'mock-jwt-token-' + newUser.id };
     } catch (error) {
       throw new Error("Login failed. Please check your internet connection.");

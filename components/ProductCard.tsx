@@ -7,6 +7,7 @@ import { getScoutInsights } from '../services/amazonService';
 interface ProductCardProps {
   product: Product;
   defaultCost?: number;
+  forcedCurrencySymbol?: string;
   onSave?: (product: Product) => void;
   isSaved?: boolean;
   isSelected?: boolean;
@@ -16,6 +17,7 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ 
   product, 
   defaultCost = 0, 
+  forcedCurrencySymbol,
   onSave, 
   isSaved,
   isSelected,
@@ -25,7 +27,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [insight, setInsight] = useState<string | null>(null);
   const [loadingInsight, setLoadingInsight] = useState(false);
   const [insightError, setInsightError] = useState<string | null>(null);
-  const currencySymbol = getCurrencySymbol(product.currency);
+  
+  const currencySymbol = forcedCurrencySymbol || getCurrencySymbol(product.currency);
 
   const stats = useMemo((): ProfitStats => {
     const referralFee = product.price * REFERRAL_FEE_PERCENT;
@@ -80,19 +83,22 @@ const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </div>
           <div className="price-section">
-            <div style={{minWidth: '70px'}}>
+            <div style={{minWidth: '85px'}}>
               <span className="stat-label">Amazon</span>
               <div className="price-display" style={{fontSize: 'clamp(1.1rem, 4vw, 1.5rem)'}}>{currencySymbol}{product.price.toFixed(2)}</div>
             </div>
             <div style={{flex: 1, minWidth: '0'}}>
-              <span className="stat-label">Your Cost</span>
-              <input 
-                type="number" 
-                value={costPrice} 
-                onChange={(e) => setCostPrice(Number(e.target.value))} 
-                className="filter-input" 
-                style={{fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)', borderBottom: '1px solid var(--slate-200)', padding: '2px 0'}} 
-              />
+              <span className="stat-label">Your Cost ({currencySymbol})</span>
+              <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--slate-200)' }}>
+                <span style={{ color: 'var(--slate-400)', fontWeight: 900, marginRight: '4px' }}>{currencySymbol}</span>
+                <input 
+                  type="number" 
+                  value={costPrice} 
+                  onChange={(e) => setCostPrice(Number(e.target.value))} 
+                  className="filter-input" 
+                  style={{fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)', padding: '2px 0', border: 'none'}} 
+                />
+              </div>
             </div>
           </div>
         </div>
