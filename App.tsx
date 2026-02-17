@@ -40,26 +40,27 @@ const App: React.FC = () => {
       <div className="app-container">
         <header className="site-header">
           <div className="max-width-wrapper header-inner">
-            <div className="nav-links">
+            <div className="flex items-center gap-2">
               <Link to="/" className="brand">
                 <div className="brand-icon">AS</div>
-                <span>ArbitrageScout</span>
+                <span className="hidden-mobile">ArbitrageScout</span>
               </Link>
-              <nav className="nav-links" style={{marginLeft: '2rem'}}>
-                <NavLink to="/" icon={<Icons.LayoutDashboard />}>Dashboard</NavLink>
-                <NavLink to="/watchlist" icon={<Icons.Bookmark />}>Watchlist</NavLink>
-              </nav>
             </div>
-
-            <div className="nav-links">
-              <div style={{textAlign: 'right', marginRight: '1rem'}} className="hidden sm:inline-block">
-                <div style={{fontSize: '0.875rem', fontWeight: 500}}>{user?.username}</div>
-                <div style={{fontSize: '0.75rem', color: 'var(--emerald-600)', fontWeight: 800, textTransform: 'uppercase'}}>{user?.tier} Plan</div>
+            
+            <nav className="nav-links">
+              <NavLink to="/" icon={<Icons.LayoutDashboard />}>Dash</NavLink>
+              <NavLink to="/watchlist" icon={<Icons.Bookmark />}>List</NavLink>
+              
+              <div style={{marginLeft: '0.5rem', borderLeft: '1px solid var(--slate-200)', paddingLeft: '0.5rem'}} className="flex items-center gap-2">
+                <div className="hidden-mobile" style={{textAlign: 'right'}}>
+                  <div style={{fontSize: '0.75rem', fontWeight: 600}}>{user?.username}</div>
+                  <div style={{fontSize: '0.65rem', color: 'var(--emerald-600)', fontWeight: 800}}>{user?.tier}</div>
+                </div>
+                <button onClick={handleLogout} className="nav-link" style={{padding: '0.5rem'}}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                </button>
               </div>
-              <button onClick={handleLogout} style={{fontSize: '0.875rem', color: 'var(--slate-500)', fontWeight: 500}}>
-                Logout
-              </button>
-            </div>
+            </nav>
           </div>
         </header>
 
@@ -70,9 +71,9 @@ const App: React.FC = () => {
           </Routes>
         </main>
 
-        <footer className="footer">
+        <footer style={{padding: '2rem 0', textAlign: 'center', color: 'var(--slate-400)', fontSize: '0.75rem'}}>
           <div className="max-width-wrapper">
-            <p>© 2024 ArbitrageScout. Real-time Amazon Intelligence for Pros.</p>
+            <p>© 2024 ArbitrageScout. Real-time Amazon Intelligence.</p>
           </div>
         </footer>
       </div>
@@ -87,7 +88,7 @@ const NavLink: React.FC<{ to: string, icon: React.ReactNode, children: React.Rea
   return (
     <Link to={to} className={`nav-link ${isActive ? 'nav-link-active' : ''}`}>
       {icon}
-      <span>{children}</span>
+      <span className="hidden-mobile">{children}</span>
     </Link>
   );
 };

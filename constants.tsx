@@ -4,6 +4,12 @@ import React from 'react';
 export const REFERRAL_FEE_PERCENT = 0.15;
 export const ESTIMATED_FBA_FEE = 4.50; // Flat estimate for MVP
 
+export interface AmazonCategory {
+  id: string;
+  name: string;
+  children?: { id: string; name: string }[];
+}
+
 export const COUNTRY_MARKETPLACES = [
   // North America
   { code: 'US', name: 'United States', currency: 'USD', symbol: '$' },
@@ -37,38 +43,100 @@ export const COUNTRY_MARKETPLACES = [
   { code: 'BR', name: 'Brazil', currency: 'BRL', symbol: 'R$' },
 ];
 
-export const AMAZON_CATEGORIES = [
+export const AMAZON_CATEGORIES: AmazonCategory[] = [
   { id: 'aps', name: 'All Departments' },
-  { id: 'electronics', name: 'Electronics' },
-  { id: 'computers', name: 'Computers & Accessories' },
-  { id: 'smart-home', name: 'Smart Home' },
-  { id: 'arts-crafts', name: 'Arts, Crafts & Sewing' },
-  { id: 'automotive', name: 'Automotive' },
-  { id: 'baby-products', name: 'Baby' },
-  { id: 'beauty', name: 'Beauty & Personal Care' },
-  { id: 'luxury-beauty', name: 'Luxury Beauty' },
-  { id: 'books', name: 'Books' },
-  { id: 'mobile', name: 'Cell Phones & Accessories' },
-  { id: 'fashion', name: 'Clothing, Shoes & Jewelry' },
-  { id: 'collectibles', name: 'Collectibles & Fine Art' },
-  { id: 'grocery', name: 'Grocery & Gourmet Food' },
-  { id: 'hpc', name: 'Health, Household & Baby Care' },
-  { id: 'home-garden', name: 'Home & Kitchen' },
-  { id: 'industrial', name: 'Industrial & Scientific' },
-  { id: 'luggage', name: 'Luggage & Travel Gear' },
-  { id: 'movies-tv', name: 'Movies & TV' },
-  { id: 'music', name: 'Music, CDs & Vinyl' },
-  { id: 'musical-instruments', name: 'Musical Instruments' },
-  { id: 'office-products', name: 'Office Products' },
-  { id: 'garden', name: 'Patio, Lawn & Garden' },
-  { id: 'pet-supplies', name: 'Pet Supplies' },
-  { id: 'software', name: 'Software' },
-  { id: 'sporting-goods', name: 'Sports & Outdoors' },
-  { id: 'tools', name: 'Tools & Home Improvement' },
-  { id: 'toys-and-games', name: 'Toys & Games' },
-  { id: 'videogames', name: 'Video Games' },
-  { id: 'appliances', name: 'Appliances' },
-  { id: 'handmade', name: 'Handmade Products' },
+  { 
+    id: 'electronics', 
+    name: 'Electronics',
+    children: [
+      { id: 'electronics', name: 'All Electronics' },
+      { id: 'electronics-accessories', name: 'Accessories & Supplies' },
+      { id: 'photo', name: 'Camera & Photo' },
+      { id: 'car-electronics', name: 'Car & Vehicle Electronics' },
+      { id: 'computers', name: 'Computers & Accessories' },
+      { id: 'office-products', name: 'Office Electronics' },
+      { id: 'audio-video', name: 'Portable Audio & Video' },
+      { id: 'videogames', name: 'Video Games & Consoles' },
+    ]
+  },
+  { 
+    id: 'home-garden', 
+    name: 'Home & Kitchen',
+    children: [
+      { id: 'home-garden', name: 'All Home & Kitchen' },
+      { id: 'kitchen', name: 'Kitchen & Dining' },
+      { id: 'bedding', name: 'Bedding' },
+      { id: 'bath', name: 'Bath' },
+      { id: 'furniture', name: 'Furniture' },
+      { id: 'appliances', name: 'Large Appliances' },
+      { id: 'storage-organization', name: 'Storage & Organization' },
+    ]
+  },
+  { 
+    id: 'beauty', 
+    name: 'Beauty & Personal Care',
+    children: [
+      { id: 'beauty', name: 'All Beauty' },
+      { id: 'makeup', name: 'Makeup' },
+      { id: 'skin-care', name: 'Skin Care' },
+      { id: 'hair-care', name: 'Hair Care' },
+      { id: 'fragrance', name: 'Fragrance' },
+      { id: 'beauty-tools', name: 'Beauty Tools' },
+    ]
+  },
+  { 
+    id: 'hpc', 
+    name: 'Health & Household',
+    children: [
+      { id: 'hpc', name: 'All Health' },
+      { id: 'vitamins', name: 'Vitamins & Supplements' },
+      { id: 'household-supplies', name: 'Household Supplies' },
+      { id: 'personal-care', name: 'Personal Care' },
+      { id: 'baby-care', name: 'Baby & Child Care' },
+    ]
+  },
+  { 
+    id: 'toys-and-games', 
+    name: 'Toys & Games',
+    children: [
+      { id: 'toys-and-games', name: 'All Toys' },
+      { id: 'arts-crafts', name: 'Arts & Crafts' },
+      { id: 'puzzles', name: 'Puzzles' },
+      { id: 'learning-education', name: 'Learning & Education' },
+      { id: 'action-figures', name: 'Action Figures' },
+    ]
+  },
+  { 
+    id: 'pets', 
+    name: 'Pet Supplies',
+    children: [
+      { id: 'pets', name: 'All Pets' },
+      { id: 'dog-supplies', name: 'Dogs' },
+      { id: 'cat-supplies', name: 'Cats' },
+      { id: 'fish-aquatic', name: 'Fish & Aquatics' },
+      { id: 'bird-supplies', name: 'Birds' },
+    ]
+  },
+  { 
+    id: 'sporting-goods', 
+    name: 'Sports & Outdoors',
+    children: [
+      { id: 'sporting-goods', name: 'All Sports' },
+      { id: 'exercise-fitness', name: 'Exercise & Fitness' },
+      { id: 'outdoor-recreation', name: 'Outdoor Recreation' },
+      { id: 'sports-fan-shop', name: 'Sports Fan Shop' },
+    ]
+  },
+  { 
+    id: 'industrial', 
+    name: 'Industrial & Scientific',
+    children: [
+      { id: 'industrial', name: 'All Industrial' },
+      { id: 'lab-scientific', name: 'Lab & Scientific' },
+      { id: 'safety-products', name: 'Safety Products' },
+      { id: 'medical-supplies', name: 'Medical Supplies' },
+    ]
+  },
 ];
 
 export const getCurrencySymbol = (currencyCode?: string) => {
@@ -90,7 +158,7 @@ export const Icons = {
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/><path d="m9 10 2 2 4-4"/></svg>
   ),
   LayoutDashboard: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="5" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
   ),
   Calculator: () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>

@@ -1,21 +1,12 @@
 
 import { User, SubscriptionTier, Product, SavedProduct } from '../types';
 
-/**
- * STRAPI BACKEND SERVICE
- * Handles mock authentication and real lead capture to the specified endpoint.
- */
-
 const MOCK_DELAY = 600;
 const LEAD_ENDPOINT = 'https://api.madsag.in/api/amazon-emails';
 
 export const strapiService = {
-  // Lead Generation
   async captureLead(email: string): Promise<boolean> {
     try {
-      console.log(`Scout: Capturing lead for ${email}...`);
-      // Sending email data to the requested endpoint: https://api.madsag.in/api/amazon-emails
-      // Strapi expects the payload to be wrapped in a 'data' key.
       const response = await fetch(LEAD_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -33,75 +24,76 @@ export const strapiService = {
       });
 
       if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`);
+        throw new Error(`Lead capture failed with status ${response.status}`);
       }
 
-      console.log("Scout: Lead captured successfully.");
       return true;
     } catch (error) {
-      // Log warning but don't block the user flow
-      console.warn("Scout: Lead capture backend task failed:", error);
+      // Don't throw for lead capture as it's secondary to user entry
+      console.warn("Lead capture failed:", error);
       return false;
     }
   },
 
-  // Authentication (Simulated via LocalStorage)
-  async login(email: string, password?: string): Promise<{ user: User; jwt: string }> {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    
-    // Check local storage for existing user or create one
-    const existing = localStorage.getItem(`strapi_user_${email}`);
-    if (existing) {
-      const user = JSON.parse(existing);
-      return { user, jwt: 'mock-jwt-token-' + user.id };
-    }
+  async login(email: string): Promise<{ user: User; jwt: string }> {
+    try {
+      await new Promise(r => setTimeout(r, MOCK_DELAY));
+      
+      const existing = localStorage.getItem(`strapi_user_${email}`);
+      if (existing) {
+        const user = JSON.parse(existing);
+        return { user, jwt: 'mock-jwt-token-' + user.id };
+      }
 
-    const newUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      username: email.split('@')[0],
-      email: email,
-      tier: SubscriptionTier.FREE,
-      searchCredits: 5 
-    };
-    
-    localStorage.setItem(`strapi_user_${email}`, JSON.stringify(newUser));
-    return { user: newUser, jwt: 'mock-jwt-token-' + newUser.id };
+      const newUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
+        username: email.split('@')[0],
+        email: email,
+        tier: SubscriptionTier.FREE,
+        searchCredits: 5 
+      };
+      
+      localStorage.setItem(`strapi_user_${email}`, JSON.stringify(newUser));
+      return { user: newUser, jwt: 'mock-jwt-token-' + newUser.id };
+    } catch (error) {
+      throw new Error("Login failed. Please check your internet connection.");
+    }
   },
 
-  // Watchlist Operations
   async getWatchlist(userId: string): Promise<SavedProduct[]> {
-    await new Promise(r => setTimeout(r, MOCK_DELAY));
-    const saved = localStorage.getItem(`strapi_watchlist_${userId}`);
-    return saved ? JSON.parse(saved) : [];
+    try {
+      await new Promise(r => setTimeout(r, MOCK_DELAY));
+      const saved = localStorage.getItem(`strapi_watchlist_${userId}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      throw new Error("Could not retrieve your watchlist.");
+    }
   },
 
   async saveProduct(userId: string, product: Product): Promise<SavedProduct> {
-    const watchlist = await this.getWatchlist(userId);
-    const newSaved: SavedProduct = {
-      ...product,
-      trackedPrice: product.price,
-      savedAt: new Date().toISOString()
-    };
-    
-    const updated = [...watchlist, newSaved];
-    localStorage.setItem(`strapi_watchlist_${userId}`, JSON.stringify(updated));
-    return newSaved;
+    try {
+      const watchlist = await this.getWatchlist(userId);
+      const newSaved: SavedProduct = {
+        ...product,
+        trackedPrice: product.price,
+        savedAt: new Date().toISOString()
+      };
+      
+      const updated = [...watchlist, newSaved];
+      localStorage.setItem(`strapi_watchlist_${userId}`, JSON.stringify(updated));
+      return newSaved;
+    } catch (error) {
+      throw new Error("Failed to save product. Local storage might be full.");
+    }
   },
 
   async removeProduct(userId: string, asin: string): Promise<void> {
-    const watchlist = await this.getWatchlist(userId);
-    const updated = watchlist.filter(p => p.asin !== asin);
-    localStorage.setItem(`strapi_watchlist_${userId}`, JSON.stringify(updated));
-  },
-
-  // Search Credits
-  async decrementCredits(userId: string, email: string): Promise<number> {
-    const userStr = localStorage.getItem(`strapi_user_${email}`);
-    if (!userStr) return 0;
-    
-    const user = JSON.parse(userStr);
-    user.searchCredits = Math.max(0, user.searchCredits - 1);
-    localStorage.setItem(`strapi_user_${email}`, JSON.stringify(user));
-    return user.searchCredits;
+    try {
+      const watchlist = await this.getWatchlist(userId);
+      const updated = watchlist.filter(p => p.asin !== asin);
+      localStorage.setItem(`strapi_watchlist_${userId}`, JSON.stringify(updated));
+    } catch (error) {
+      throw new Error("Could not remove product from watchlist.");
+    }
   }
 };
