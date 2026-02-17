@@ -7,30 +7,39 @@ const LEAD_ENDPOINT = 'https://api.madsag.in/api/amazon-emails';
 export const strapiService = {
   async captureLead(email: string, phoneNumber?: string): Promise<boolean> {
     try {
+      const payload = {
+        data: {
+          email: email,
+          // Using 'phonenumber' or 'phone' - standard Strapi fields are usually one of these.
+          // We also ensure we only send a value if it's provided to avoid validation errors with 'N/A' strings.
+          phonenumber: phoneNumber || '',
+          source: 'ArbitrageScout App',
+          status: 'active'
+        }
+      };
+
       const response = await fetch(LEAD_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({
-          data: {
-            email: email,
-            phone: phoneNumber || 'N/A',
-            source: 'ArbitrageScout App',
-            timestamp: new Date().toISOString(),
-            status: 'active'
-          }
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        throw new Error(`Lead capture failed with status ${response.status}`);
+        // Attempt to capture the specific validation error from Strapi
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Strapi Validation Error Details:", errorData);
+        
+        const message = errorData?.error?.message || `Status: ${response.status}`;
+        throw new Error(`Lead capture failed: ${message}`);
       }
 
       return true;
-    } catch (error) {
-      console.warn("Lead capture failed:", error);
+    } catch (error: any) {
+      console.warn("Lead capture failed:", error.message);
+      // We return false but don't block the user experience if lead capture fails
       return false;
     }
   },
@@ -44,7 +53,6 @@ export const strapiService = {
       
       if (existing) {
         const user = JSON.parse(existing);
-        // Update phone number if provided
         if (phoneNumber) user.phoneNumber = phoneNumber;
         localStorage.setItem(existingKey, JSON.stringify(user));
         return { user, jwt: 'mock-jwt-token-' + user.id };

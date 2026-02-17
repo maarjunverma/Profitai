@@ -18,6 +18,7 @@
   --slate-900: #0f172a;
   --red-50: #fef2f2;
   --red-100: #fee2e2;
+  --red-500: #ef4444;
   --red-600: #dc2626;
   --red-700: #b91c1c;
   --white: #ffffff;
@@ -70,7 +71,8 @@ input, select, textarea, button {
 .search-field:focus { background: white; border-color: var(--emerald-500); box-shadow: 0 0 0 4px var(--emerald-100); }
 
 .filter-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-top: 1rem; }
-.filter-item { background: white; padding: 0.6rem 1rem; border-radius: var(--radius-xl); border: 1px solid var(--slate-200); display: flex; flex-direction: column; position: relative; }
+.filter-item { background: white; padding: 0.6rem 1rem; border-radius: var(--radius-xl); border: 1px solid var(--slate-200); display: flex; flex-direction: column; position: relative; transition: all 0.2s; }
+.filter-item:hover { border-color: var(--emerald-500); }
 .filter-label { font-size: 9px; font-weight: 900; color: var(--slate-400); text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.05em; }
 .filter-select, .filter-input { border: none; background: none; font-size: 0.9rem; font-weight: 700; color: var(--slate-800); outline: none; width: 100%; }
 
@@ -119,8 +121,10 @@ input, select, textarea, button {
 .hero-title { font-size: 2rem; font-weight: 900; letter-spacing: -0.04em; line-height: 1.1; margin-bottom: 1rem; padding: 0 0.5rem; }
 .hero-subtitle { font-size: 1rem; color: var(--slate-600); max-width: 90%; margin: 0 auto 2rem auto; line-height: 1.5; }
 .access-form { max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.75rem; padding: 0 1rem; }
-.access-input { width: 100%; padding: 1rem; border-radius: var(--radius-xl); border: 1px solid var(--slate-200); font-size: 1rem; outline: none; transition: all 0.2s; }
+.access-input { width: 100%; padding: 1rem; border-radius: var(--radius-xl); border: 1px solid var(--slate-200); font-size: 1rem; outline: none; transition: all 0.2s; background: white; }
 .access-input:focus { border-color: var(--emerald-500); box-shadow: 0 0 0 4px var(--emerald-100); }
+.access-input.border-red-500:focus { border-color: var(--red-500) !important; box-shadow: 0 0 0 4px var(--red-100) !important; }
+
 .btn-access { background: var(--emerald-600); color: white; font-weight: 800; padding: 1rem; border-radius: var(--radius-xl); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border: none; }
 
 @media (min-width: 480px) {
@@ -155,3 +159,10 @@ input, select, textarea, button {
 .animate-spin { animation: spin 1s linear infinite; }
 @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .animate-in { animation: zoomIn 0.3s ease-out; }
+
+/* Custom Keyframes for forced downward animation */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-down { animation: slideDown 0.2s cubic-bezier(0, 0, 0.2, 1); }

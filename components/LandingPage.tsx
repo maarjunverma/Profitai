@@ -13,30 +13,49 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Track if fields have been interacted with to show errors
+  const [touched, setTouched] = useState({ email: false, phone: false });
+
+  const validateEmail = (val: string) => {
+    // Robust email regex checking for standard format
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(val.trim());
+  };
+
+  const validatePhone = (phone: string) => {
+    // Requirements: Standard mobile/business number (Exactly 10 or 11 digits)
+    const digits = phone.replace(/\D/g, '');
+    return digits.length >= 10 && digits.length <= 11;
+  };
+
+  const emailInvalid = touched.email && !validateEmail(email);
+  const phoneInvalid = touched.phone && !validatePhone(phoneNumber);
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setTouched({ email: true, phone: true });
     
-    if (!email || !email.includes('@')) {
-      setError("Please enter a valid email address.");
-      return;
-    }
+    const isEmailValid = validateEmail(email);
+    const isPhoneValid = validatePhone(phoneNumber);
 
-    if (!phoneNumber || phoneNumber.length < 7) {
-      setError("Please enter a valid mobile number.");
+    if (!isEmailValid || !isPhoneValid) {
+      if (!isEmailValid) {
+        setError("Please enter a valid business email address.");
+      } else if (!isPhoneValid) {
+        setError("Mobile number must be exactly 10 or 11 digits.");
+      }
       return;
     }
     
     setLoading(true);
     try {
-      // Capture lead info
       await strapiService.captureLead(email, phoneNumber);
-      // Login/Register session
       const { user } = await strapiService.login(email, phoneNumber);
       onLogin(user);
     } catch (err: any) {
-      setError(err.message || "Scout server is unreachable. Check your connection.");
+      setError(err.message || "Scout server connection error.");
     } finally {
       setLoading(false);
     }
@@ -50,64 +69,83 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
         <div className="max-width-wrapper">
           <div className="hero-badge">
-            <Icons.TrendingUp /> Get Real-time Product Trends & Demand
+            <Icons.TrendingUp /> Real-time Arbitrage Intelligence
           </div>
           
           <h1 className="hero-title">
-            Find Profitable Products <br /> on Popular Marketplaces <span style={{color: 'var(--emerald-600)'}}>Instantly.</span>
+            Find Profitable Products <br /> on Amazon <span style={{color: 'var(--emerald-600)'}}>Instantly.</span>
           </h1>
           
           <p className="hero-subtitle">
-            The high-performance dashboard for FBA Sellers. Identify pricing discrepancies, 
-            calculate ROI with FBA fees, and track profitable arbitrage opportunities.
+            The high-performance dashboard for FBA Sellers. Identify pricing gaps, 
+            calculate real-time ROI, and scale your business.
           </p>
 
           <form onSubmit={handleStart} className="access-form">
             <div className="flex flex-col gap-3">
               <div className="flex flex-col text-left gap-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Account Email</label>
+                <div className="flex justify-between items-center px-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Account Email
+                  </label>
+                  {emailInvalid && (
+                    <span className="text-[9px] text-red-500 font-bold uppercase tracking-tighter animate-slide-down">
+                      Invalid Email
+                    </span>
+                  )}
+                </div>
                 <input 
                   type="email" 
                   required
-                  inputMode="email"
-                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setTouched(prev => ({...prev, email: true}))}
                   placeholder="name@example.com"
-                  className="access-input"
-                  style={error && !email.includes('@') ? {borderColor: 'var(--red-600)'} : {}}
+                  className={`access-input ${emailInvalid ? 'border-red-500 bg-red-50 ring-1 ring-red-100' : ''}`}
                 />
               </div>
               
               <div className="flex flex-col text-left gap-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Mobile Number</label>
+                <div className="flex justify-between items-center px-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Mobile Number
+                  </label>
+                  {phoneInvalid && (
+                    <span className="text-[9px] text-red-500 font-bold uppercase tracking-tighter animate-slide-down">
+                      10-11 Digits Required
+                    </span>
+                  )}
+                </div>
                 <input 
                   type="tel" 
                   required
-                  inputMode="tel"
-                  autoComplete="tel"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="+1 (555) 000-0000"
-                  className="access-input"
-                  style={error && (!phoneNumber || phoneNumber.length < 7) ? {borderColor: 'var(--red-600)'} : {}}
+                  onBlur={() => setTouched(prev => ({...prev, phone: true}))}
+                  placeholder="e.g. 9998887777"
+                  className={`access-input ${phoneInvalid ? 'border-red-500 bg-red-50 ring-1 ring-red-100' : ''}`}
                 />
               </div>
             </div>
 
-            {error && <p style={{color: 'var(--red-600)', fontSize: '0.75rem', fontWeight: 700, margin: '4px 0'}}>{error}</p>}
+            {error && (
+              <div className="animate-slide-down flex items-center gap-2 mt-2 px-3 py-2 bg-red-50 border border-red-100 rounded-xl">
+                <div className="text-red-600 flex-shrink-0"><Icons.Zap /></div>
+                <p className="text-red-700 text-[11px] font-bold leading-tight m-0">{error}</p>
+              </div>
+            )}
             
             <button 
               type="submit"
               disabled={loading}
-              className="btn-access"
-              style={{marginTop: '0.5rem'}}
+              className={`btn-access ${loading ? 'opacity-70' : ''}`}
+              style={{marginTop: '0.75rem'}}
             >
               {loading ? (
-                <>
-                  <div className="animate-spin" style={{width: '20px', height: '20px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%'}} />
-                  Initializing Scout...
-                </>
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin" style={{width: '18px', height: '18px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%'}} />
+                  Verifying...
+                </div>
               ) : (
                 <>
                   Access Dashboard <Icons.Zap />
@@ -115,7 +153,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               )}
             </button>
             <p style={{fontSize: '11px', color: 'var(--slate-400)', marginTop: '1rem'}}>
-              Join 2,500+ sellers finding gaps in the Amazon marketplace today.
+              Used by 2,500+ top-rated Amazon FBA sellers.
             </p>
           </form>
 

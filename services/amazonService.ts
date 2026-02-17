@@ -23,6 +23,7 @@ const parseSalesVolumeToBSR = (volume: string | null): number => {
   if (lower.includes('k')) multiplier = 1000;
   const numericMatch = volume.match(/\d+/);
   const baseValue = numericMatch ? parseInt(numericMatch[0]) : 1;
+  // Approximation of BSR based on volume: more volume = lower (better) rank
   return Math.max(1, 1000000 - (baseValue * multiplier));
 };
 
@@ -44,28 +45,29 @@ export async function searchProducts(
   category: string = 'aps',
   minPrice?: number,
   maxPrice?: number,
-  page: number = 1
+  page: number = 1,
+  isTrending: boolean = false
 ): Promise<Product[]> {
   const categoryObj = findCategory(category);
   const categoryName = categoryObj?.name || '';
   let searchQuery = query.trim();
   
-  if (!searchQuery && category !== 'aps') {
-    searchQuery = `best sellers in ${categoryName}`;
-  } else if (searchQuery && category !== 'aps') {
-    searchQuery = `${searchQuery} ${categoryName}`;
-  } else if (!searchQuery) {
-    searchQuery = "best sellers";
+  // Refined query logic for category accuracy
+  if (!searchQuery) {
+    if (category !== 'aps') {
+      searchQuery = `best sellers in ${categoryName}`;
+    } else {
+      searchQuery = "best sellers";
+    }
+  } else if (category !== 'aps' && !searchQuery.toLowerCase().includes(categoryName.toLowerCase())) {
+    // If there is a query, append category context to help the search engine
+    searchQuery = `${searchQuery} in ${categoryName}`;
   }
 
-  let finalQuery = searchQuery;
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    const priceContext = `price ${minPrice || 0} to ${maxPrice || 'any'}`;
-    finalQuery += ` ${priceContext}`;
-  }
-
+  const sortBy = isTrending ? 'BEST_SELLERS' : 'RELEVANCE';
   const categoryIdParam = (category === 'aps') ? 'aps' : category;
-  const url = `https://${RAPIDAPI_HOST}/search?query=${encodeURIComponent(finalQuery)}&category_id=${categoryIdParam}&page=${page}&country=${country}&sort_by=RELEVANCE&product_condition=ALL`;
+  
+  const url = `https://${RAPIDAPI_HOST}/search?query=${encodeURIComponent(searchQuery)}&category_id=${categoryIdParam}&page=${page}&country=${country}&sort_by=${sortBy}&product_condition=ALL`;
   
   try {
     const response = await fetch(url, {
@@ -119,15 +121,18 @@ export async function getScoutInsights(product: Product): Promise<string> {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `You are a professional Amazon FBA Arbitrage Scout. 
-      Analyze this product for potential arbitrage:
-      - Title: ${product.title}
+      Analyze this product for potential arbitrage and demand velocity:
+      - Product: ${product.title} (ASIN: ${product.asin})
       - Price: ${product.price} ${product.currency}
-      - BSR: ${product.bsr}
-      - Recent Sales Volume: ${product.salesVolume}
-      - Rating: ${product.rating} stars from ${product.reviewCount} reviews
+      - Best Sellers Rank (BSR): ${product.bsr}
+      - Estimated Monthly Sales Volume: ${product.salesVolume || 'Unknown'}
+      - Social Proof: ${product.rating} stars from ${product.reviewCount} reviews
       
-      Provide a concise 2-sentence verdict. Determine if it's a high, medium, or low risk opportunity. 
-      Consider BSR (lower is better) and sales volume as demand indicators.`
+      Instructions:
+      1. Provide a nuanced 2-sentence verdict. 
+      2. Prioritize "Monthly Sales Volume" as the key indicator of demand velocity. 
+      3. Correlate BSR with Volume (e.g., "High volume despite mid-range BSR suggests a growing trend").
+      4. Categorize as High, Medium, or Low risk/reward opportunity based on market liquidity.`
     });
 
     if (!response || !response.text) {
